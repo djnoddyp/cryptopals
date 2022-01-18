@@ -20,7 +20,7 @@ func main() {
 	// fmt.Println(FindEditDistance("this is a test", "wokka wokka!!!"))
 
 	// BreakRepeatingKeyXor()
-	AesEcbMode()
+	DetectAesECb()
 
 	// fmt.Printf("\nExecution time: %v", time.Since(start))
 }

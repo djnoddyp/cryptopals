@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"crypto/aes"
 	b64 "encoding/base64"
 	"encoding/hex"
@@ -39,7 +40,12 @@ func DecipherSingleByteXor(ciphertext string) []CharScore {
 	res := make([]byte, hex.DecodedLen(len(ciphertext)))
 	scores := make([]CharScore, 1)
 
-	for _, ce := range ascii_chars {
+	ascii := make([]byte, 256)
+	for i := range ascii {
+		ascii[i] = byte(i)
+	}
+
+	for _, ce := range ascii[32:127] {
 		for di, de := range decoded {
 			res[di] = de ^ ce
 		}
@@ -121,7 +127,7 @@ func BreakRepeatingKeyXor() {
 	sort.Sort(ByEditScore(scores))
 	fmt.Println(scores)
 
-	// break ciphertext into blocks into keysize length
+	// break ciphertext into blocks of keysize length
 	keysize := 29
 	blocks := make([][]byte, len(ciphertext)/keysize)
 	index := 0
@@ -179,6 +185,40 @@ func AesEcbMode() {
 	fmt.Println(string(plaintext))
 }
 
+// Challenge 8
+func DetectAesECb() {
+	const filename = "1_8.txt"
+	content, _ := ioutil.ReadFile(filename)
+	bunch := bytes.Split(content, []byte("\n"))
+
+	for _, e := range bunch {
+		ciphertext, _ := hex.DecodeString(string(e))
+		if len(ciphertext) > 0 {
+			if isEcb(ciphertext[:160]) {
+				fmt.Printf("### we have a winner ###\n\nciphertext: %s \n\nhex: %s", ciphertext, hex.EncodeToString(ciphertext))
+			}
+		}
+	}
+
+}
+
+// AES with ECB mode is weak because it is stateless and deterministic,
+// the same 16 bytes of plaintext will always produce the same 16 bytes of ciphertext
+func isEcb(sample []byte) bool {
+	result := false
+	// check each 16 byte block against every other (except itself) for equality
+	for i := 0; i < 10; i++ {
+		this := sample[i*16 : (i+1)*16]
+		for j := 0; j < 10; j++ {
+			other := sample[j*16 : (j+1)*16]
+			if i != j && bytes.Equal(this, other) {
+				return true
+			}
+		}
+	}
+	return result
+}
+
 func doDecipher(block []byte) {
 	res := make([]byte, len(block))
 	scores := make([]CharScore, 0)
@@ -198,12 +238,6 @@ func doDecipher(block []byte) {
 		scores = append(scores, CharScore{string(ce), current_score, string(plain), checkHasLetters(plain)})
 		sort.Sort(ByScore(scores))
 	}
-	// fmt.Println(scores)
-	// fmt.Println(s[0].char, s[0].score)
-	// for _, e := range scores[:3] {
-	// fmt.Printf("char=%s \nscore=%d\nplain=%s\nhasLetters=%v \n\n", e.char, e.score, e.plaintext[:80], e.has_letters)
-	// fmt.Printf("char=%s \nscore=%d \n\n", e.char, e.score)
-	// }
 }
 
 func findEditDistance(a, b []byte) int {
@@ -294,14 +328,7 @@ func scoreSample(sample []byte) int {
 	// return num_the +
 	// 	num_and + num_it + num_comma + num_stop + num_to +
 	// 	num_be + num_of + num_A + num_have + num_for + num_in
-	return num_e*2 +
-		num_t*2 + num_a*2 + num_o + num_i + num_n +
-		num_s + num_h + num_r + num_d + num_l + num_u + num_space
+	return num_e*13 +
+		num_t*12 + num_a*11 + num_o*10 + num_i*9 + num_n*8 +
+		num_s*7 + num_h*6 + num_r*5 + num_d*4 + num_l*3 + num_u*2 + num_space
 }
-
-var ascii_chars = []byte{' ', '!', '"', '#', '$', '%', '&', '\'', '(', ')', '*',
-	'+', ',', '-', '.', '/', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', ':', ';', '<',
-	'=', '>', '?', '@', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N',
-	'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '[', '\\', ']', '^', '_', '`',
-	'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r',
-	's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '{', '|', '}', '~'}
