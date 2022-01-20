@@ -1,5 +1,7 @@
 package main
 
+import "fmt"
+
 func main() {
 	// start := time.Now()
 	// fmt.Println(hexToBase64("49276d206b696c6c696e6720796f757220627261696e206c696b65206120706f69736f6e6f7573206d757368726f6f6d"))
@@ -20,7 +22,11 @@ func main() {
 	// fmt.Println(FindEditDistance("this is a test", "wokka wokka!!!"))
 
 	// BreakRepeatingKeyXor()
-	DetectAesECb()
+	// ImplementPkcs7Padding([]byte("I am invincible"), 33)
+	c := ImplementCbcEnc([]byte("this is probably not going to work, but i'm going to try" +
+		"anyway because i really want to learn crypto and be a total legend"))
+	// AesEcbMode(c)
+	fmt.Println(string(ImplementCbcDec(c)))
 
 	// fmt.Printf("\nExecution time: %v", time.Since(start))
 }

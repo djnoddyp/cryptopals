@@ -49,10 +49,10 @@ func DecipherSingleByteXor(ciphertext string) []CharScore {
 		for di, de := range decoded {
 			res[di] = de ^ ce
 		}
-		current_score := scoreSample(res)
+		currentScore := scoreSample(res)
 		plain := make([]byte, len(res))
 		copy(plain, res)
-		scores = append(scores, CharScore{string(ce), current_score, string(plain), false})
+		scores = append(scores, CharScore{string(ce), currentScore, string(plain), false})
 		sort.Sort(ByScore(scores))
 	}
 	return scores[0:3]
@@ -62,13 +62,13 @@ func DecipherSingleByteXor(ciphertext string) []CharScore {
 func DetectSingleCharXor(filename string) []CharScore {
 	content, _ := ioutil.ReadFile(filename)
 	lines := strings.Split(string(content), "\n")
-	final_scores := make([]CharScore, 1)
+	finalScores := make([]CharScore, 1)
 
 	for _, e := range lines {
-		final_scores = append(final_scores, DecipherSingleByteXor(e)...)
+		finalScores = append(finalScores, DecipherSingleByteXor(e)...)
 	}
-	sort.Sort(ByScore(final_scores))
-	return final_scores[0:5]
+	sort.Sort(ByScore(finalScores))
+	return finalScores[0:5]
 }
 
 // Challenge 5
@@ -77,12 +77,12 @@ func RepeatingKeyXor(plaintext string) string {
 	ciphertext := make([]byte, len(bytes))
 
 	key := strings.Repeat("ICE", len(plaintext)/3+1)
-	key_bytes := []byte(strings.TrimRightFunc(key, func(r rune) bool {
+	keyBytes := []byte(strings.TrimRightFunc(key, func(r rune) bool {
 		return len(key) == len(plaintext)
 	}))
 
 	for i, e := range bytes {
-		ciphertext[i] = e ^ key_bytes[i]
+		ciphertext[i] = e ^ keyBytes[i]
 	}
 	return hex.EncodeToString(ciphertext)
 }
@@ -102,26 +102,26 @@ func BreakRepeatingKeyXor() {
 	// by edit distance (shortest wins)
 	// Contrary to cryptopals it seems necessary to average out the
 	// distance from multiple (4+) samples to get accurate results
-	for key_size := 2; key_size <= 40; key_size++ {
-		a := ciphertext[:key_size]
-		b := ciphertext[key_size : key_size*2]
-		c := ciphertext[key_size*2 : key_size*3]
-		d := ciphertext[key_size*3 : key_size*4]
-		e := ciphertext[key_size*4 : key_size*5]
-		f := ciphertext[key_size*5 : key_size*6]
-		g := ciphertext[key_size*6 : key_size*7]
-		h := ciphertext[key_size*7 : key_size*8]
-		i := ciphertext[key_size*8 : key_size*9]
-		j := ciphertext[key_size*9 : key_size*10]
-		edit_dist_1 := float32(findEditDistance(a, b)) / float32(key_size)
-		edit_dist_2 := float32(findEditDistance(c, d)) / float32(key_size)
-		edit_dist_3 := float32(findEditDistance(e, f)) / float32(key_size)
-		edit_dist_4 := float32(findEditDistance(g, h)) / float32(key_size)
-		edit_dist_5 := float32(findEditDistance(i, j)) / float32(key_size)
+	for keySize := 2; keySize <= 40; keySize++ {
+		a := ciphertext[:keySize]
+		b := ciphertext[keySize : keySize*2]
+		c := ciphertext[keySize*2 : keySize*3]
+		d := ciphertext[keySize*3 : keySize*4]
+		e := ciphertext[keySize*4 : keySize*5]
+		f := ciphertext[keySize*5 : keySize*6]
+		g := ciphertext[keySize*6 : keySize*7]
+		h := ciphertext[keySize*7 : keySize*8]
+		i := ciphertext[keySize*8 : keySize*9]
+		j := ciphertext[keySize*9 : keySize*10]
+		editDist1 := float32(findEditDistance(a, b)) / float32(keySize)
+		editDist2 := float32(findEditDistance(c, d)) / float32(keySize)
+		editDist3 := float32(findEditDistance(e, f)) / float32(keySize)
+		editDist4 := float32(findEditDistance(g, h)) / float32(keySize)
+		editDist5 := float32(findEditDistance(i, j)) / float32(keySize)
 		scores = append(scores, EditScore{
-			keysize: key_size,
-			score: float32((edit_dist_1 + edit_dist_2 + edit_dist_3 +
-				edit_dist_4 + edit_dist_5)) / float32(5),
+			keysize: keySize,
+			score: float32((editDist1 + editDist2 + editDist3 +
+				editDist4 + editDist5)) / float32(5),
 		})
 	}
 	sort.Sort(ByEditScore(scores))
@@ -147,27 +147,27 @@ func BreakRepeatingKeyXor() {
 	}
 
 	key := strings.Repeat("Terminator X: Bring the noise", len(ciphertext))
-	key_bytes := []byte(strings.TrimRightFunc(key, func(r rune) bool {
+	keyBytes := []byte(strings.TrimRightFunc(key, func(r rune) bool {
 		return len(key) == len(ciphertext)
 	}))
 
 	plaintext := make([]byte, len(ciphertext))
 	for i, e := range ciphertext {
-		plaintext[i] = e ^ key_bytes[i]
+		plaintext[i] = e ^ keyBytes[i]
 	}
 	fmt.Println(string(plaintext))
 }
 
 // Challenge 7
-func AesEcbMode() {
+func AesEcbMode(ciphertext []byte) {
 	const key = "YELLOW SUBMARINE"
 
-	const filename = "1_7.txt"
-	content, _ := ioutil.ReadFile(filename)
+	// const filename = "1_7.txt"
+	// content, _ := ioutil.ReadFile(filename)
 
-	ciphertext := make([]byte, b64.StdEncoding.DecodedLen(len(content)))
-	l, _ := b64.RawStdEncoding.Decode(ciphertext, content)
-	ciphertext = ciphertext[:l]
+	// ciphertext := make([]byte, b64.StdEncoding.DecodedLen(len(content)))
+	// l, _ := b64.RawStdEncoding.Decode(ciphertext, content)
+	// ciphertext = ciphertext[:l]
 
 	// Obtain new block using key (AES-128)
 	block, _ := aes.NewCipher([]byte(key))
@@ -176,9 +176,9 @@ func AesEcbMode() {
 	plaintext := make([]byte, len(ciphertext))
 
 	// decrypt ciphertext one 128 bit block at a time
-	key_len := len(key)
-	for i := 0; i < len(ciphertext)/key_len; i++ {
-		block.Decrypt(buffer, ciphertext[key_len*i:key_len*(i+1)])
+	keyLen := len(key)
+	for i := 0; i < len(ciphertext)/keyLen; i++ {
+		block.Decrypt(buffer, ciphertext[keyLen*i:keyLen*(i+1)])
 		plaintext = append(plaintext, buffer...)
 	}
 
@@ -232,10 +232,10 @@ func doDecipher(block []byte) {
 		for di, de := range block {
 			res[di] = ce ^ de
 		}
-		current_score := scoreSample(res)
+		currentScore := scoreSample(res)
 		plain := make([]byte, len(res))
 		copy(plain, res)
-		scores = append(scores, CharScore{string(ce), current_score, string(plain), checkHasLetters(plain)})
+		scores = append(scores, CharScore{string(ce), currentScore, string(plain), checkHasLetters(plain)})
 		sort.Sort(ByScore(scores))
 	}
 }
@@ -285,10 +285,10 @@ func (s ByEditScore) Len() int           { return len(s) }
 func (s ByEditScore) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
 
 type CharScore struct {
-	char        string
-	score       int
-	plaintext   string
-	has_letters bool
+	char       string
+	score      int
+	plaintext  string
+	hasLetters bool
 }
 
 type ByScore []CharScore
